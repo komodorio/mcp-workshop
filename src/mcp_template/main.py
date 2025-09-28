@@ -34,16 +34,13 @@ def main(transport: str, host: str, port: int) -> None:
 
     try:
         if transport == "stdio":
-            click.echo(
-                "🚀 Starting MCP server with stdio transport...", err=True)
+            click.echo("🚀 Starting MCP server with stdio transport...", err=True)
             server.run()
         elif transport == "sse":
-            click.echo(
-                f"🚀 Starting MCP server with SSE transport on {host}:{port}...", err=True)
+            click.echo(f"🚀 Starting MCP server with SSE transport on {host}:{port}...", err=True)
             uvicorn.run(server.sse_app(), host=host, port=port)
         elif transport == "http":
-            click.echo(
-                f"🚀 Starting MCP server with HTTP transport on {host}:{port}...", err=True)
+            click.echo(f"🚀 Starting MCP server with HTTP transport on {host}:{port}...", err=True)
             uvicorn.run(server.streamable_http_app(), host=host, port=port)
     except KeyboardInterrupt:
         click.echo("\n👋 Server stopped by user", err=True)
