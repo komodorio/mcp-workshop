@@ -125,16 +125,40 @@ The MCP server supports three transport modes:
    - Best for web integrations and REST APIs
    - Accessible via HTTP requests
    - Port: 8000 (configurable)
+   - Supports auto-reload for development
 
 2. **SSE Transport** 
    - Server-Sent Events for real-time communication
    - Ideal for streaming applications
    - Port: 8000 (configurable)
+   - Supports auto-reload for development
 
 3. **STDIO Transport**
    - Standard input/output communication
    - Best for direct process communication
    - No network port required
+   - Auto-reload not supported (process-based communication)
+
+### Development Mode
+
+For development, you can enable auto-reload which automatically restarts the server when source files change:
+
+```bash
+# HTTP with auto-reload
+uv run mcp-server --transport http --reload
+
+# SSE with auto-reload  
+uv run mcp-server --transport sse --reload
+
+# Using make command
+make run-dev
+```
+
+**Auto-reload features:**
+- Watches the `src/` directory for changes
+- Automatically restarts the server on file modifications
+- Only available for HTTP and SSE transports
+- Ideal for rapid development and testing
 
 ### Environment Configuration
 

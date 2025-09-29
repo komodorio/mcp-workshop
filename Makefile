@@ -27,6 +27,14 @@ run: ## Run the server in stdio mode
 	@echo "🚀 Starting MCP server (stdio)..."
 	uv run mcp-server
 
+run-dev: ## Run the server in HTTP mode with auto-reload for development
+	@echo "🚀 Starting MCP server (HTTP + auto-reload)..."
+	uv run mcp-server --transport http --reload
+
+run-http: ## Run the server in HTTP mode
+	@echo "🚀 Starting MCP server (HTTP)..."
+	uv run mcp-server --transport http
+
 inspector: ## Run the server in stdio mode
 	@echo "🚀 Starting MCP server (stdio)..."
 	npx @modelcontextprotocol/inspector uv run mcp-server	
