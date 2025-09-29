@@ -250,3 +250,147 @@ make docker-run-sse      # Run with SSE transport
 make docker-stop         # Stop running container
 make docker-clean        # Clean up Docker artifacts
 ```
+
+## 🤖 Intelligent Prompts
+
+The MCP server includes powerful prompt templates that help users leverage the Kubernetes tools more effectively. These prompts combine the kubectl functionality with AI agent capabilities for comprehensive cluster management.
+
+### Available Prompts
+
+#### 1. **diagnose_cluster_issues**
+Advanced diagnostic prompt for comprehensive Kubernetes cluster troubleshooting.
+
+**Parameters:**
+- `context` (optional): Kubernetes context to diagnose
+- `namespace` (optional): Specific namespace to focus on
+- `focus_area` (default: "general"): Area to focus diagnostics on
+  - `general`: Overall cluster health including nodes, pods, and system components
+  - `pods`: Pod status, restarts, resource usage, and container issues  
+  - `services`: Service endpoints, load balancers, and networking configuration
+  - `networking`: Network policies, DNS resolution, and connectivity issues
+  - `storage`: Persistent volumes, storage classes, and mount issues
+  - `performance`: Resource utilization, bottlenecks, and scaling issues
+
+**Features:**
+- Systematic cluster analysis with structured diagnostic workflow
+- Prioritized issue identification with remediation steps
+- Visual summary with Mermaid diagrams showing issue locations
+- Color-coded status indicators (🟢 healthy, 🟡 warning, 🔴 critical)
+
+#### 2. **cluster_health_overview**
+Comprehensive cluster health overview with monitoring dashboard capabilities.
+
+**Parameters:**
+- `context` (optional): Kubernetes context to analyze
+- `include_metrics` (default: true): Include detailed resource metrics and utilization
+- `generate_dashboard` (default: false): Generate visual dashboard representation
+
+**Features:**
+- Executive summary with overall health score (0-100)
+- Infrastructure status including nodes, control plane, and networking
+- Workload health summary with deployment status analysis
+- Security & compliance review (RBAC, network policies, pod security)
+- Resource metrics and capacity planning recommendations
+- Visual dashboard with Mermaid architecture diagrams
+
+#### 3. **troubleshoot_workload**
+Targeted troubleshooting for specific Kubernetes workloads.
+
+**Parameters:**
+- `workload_type`: Type of workload (deployment, pod, service, statefulset, etc.)
+- `workload_name`: Name of the specific workload to troubleshoot
+- `namespace` (default: "default"): Namespace where the workload is located
+- `context` (optional): Kubernetes context to use
+- `include_logs` (default: true): Include log analysis in troubleshooting
+
+**Features:**
+- Systematic troubleshooting workflow with 8-step analysis
+- Root cause analysis with dependency mapping
+- Configuration validation and network connectivity testing
+- Event timeline analysis and log pattern recognition
+- Remediation plan with specific kubectl commands and rollback procedures
+
+#### 4. **generate_architecture_diagram**
+Create comprehensive Kubernetes architecture diagrams with multiple scope options.
+
+**Parameters:**
+- `scope` (default: "cluster"): Scope of diagram
+  - `cluster`: High-level cluster architecture with nodes and namespaces
+  - `namespace`: Detailed namespace architecture with workload relationships
+  - `application`: Application-level microservices and data flow
+  - `networking`: Network topology, ingress, and communication patterns
+- `context` (optional): Kubernetes context to diagram
+- `namespace` (optional): Specific namespace for namespace/application scope
+- `include_networking` (default: true): Include detailed networking components
+- `diagram_format` (default: "mermaid"): Format for diagram (mermaid, plantuml, ascii)
+
+**Features:**
+- Multi-scope architecture visualization from cluster to application level
+- Infrastructure, workload, and security boundary mapping
+- Data flow and dependency visualization with clear hierarchy
+- Color coding and legend for different component types
+- Integration with monitoring and logging flows
+
+### Usage Examples
+
+**Basic cluster diagnosis:**
+```python
+# Diagnose general cluster issues
+prompt = diagnose_cluster_issues()
+
+# Focus on pod-specific issues in production context
+prompt = diagnose_cluster_issues(context="production", focus_area="pods")
+
+# Diagnose networking issues in specific namespace
+prompt = diagnose_cluster_issues(context="staging", namespace="app-namespace", focus_area="networking")
+```
+
+**Health overview with dashboard:**
+```python
+# Basic health overview
+prompt = cluster_health_overview()
+
+# Full health report with metrics and visual dashboard
+prompt = cluster_health_overview(context="production", include_metrics=True, generate_dashboard=True)
+```
+
+**Workload troubleshooting:**
+```python
+# Troubleshoot a failing deployment
+prompt = troubleshoot_workload("deployment", "web-app", namespace="production")
+
+# Troubleshoot pod without log analysis
+prompt = troubleshoot_workload("pod", "db-pod-123", namespace="database", include_logs=False)
+```
+
+**Architecture diagrams:**
+```python
+# Cluster-wide architecture diagram
+prompt = generate_architecture_diagram(scope="cluster", context="production")
+
+# Application-specific diagram with networking focus
+prompt = generate_architecture_diagram(
+    scope="application", 
+    namespace="microservices", 
+    include_networking=True,
+    diagram_format="mermaid"
+)
+```
+
+### Integration with AI Agents
+
+These prompts are designed to work seamlessly with AI agents and provide:
+
+1. **Structured Workflows**: Each prompt follows a systematic approach that guides the AI through comprehensive analysis
+2. **Visual Artifacts**: Integration with Mermaid diagrams for creating visual dashboards and architecture representations
+3. **Actionable Outputs**: Prompts generate specific kubectl commands and remediation steps
+4. **Context Awareness**: Smart parameter handling for different environments and scopes
+5. **Extensible Design**: Easy to customize and extend for specific organizational needs
+
+### Best Practices
+
+- **Start with Overview**: Use `cluster_health_overview` for general assessment before diving into specific issues
+- **Focus Your Diagnosis**: Use appropriate `focus_area` parameters to target specific problem domains  
+- **Combine Prompts**: Use multiple prompts together for comprehensive analysis (e.g., overview + specific troubleshooting)
+- **Leverage Visuals**: Enable dashboard generation for stakeholder communication and documentation
+- **Context Specificity**: Always specify the appropriate context and namespace for accurate results
