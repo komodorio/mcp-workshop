@@ -1,4 +1,4 @@
-.PHONY: help install test lint format run clean dev-setup docker-build docker-run docker-run-stdio docker-run-sse docker-stop docker-clean
+.PHONY: help install test lint format run clean dev-setup
 
 help: ## Show available commands
 	@echo "Available commands:"
@@ -27,14 +27,6 @@ run: ## Run the server in stdio mode
 	@echo "🚀 Starting MCP server (stdio)..."
 	uv run mcp-server
 
-run-dev: ## Run the server in HTTP mode with auto-reload for development
-	@echo "🚀 Starting MCP server (HTTP + auto-reload)..."
-	uv run mcp-server --transport http --reload
-
-run-http: ## Run the server in HTTP mode
-	@echo "🚀 Starting MCP server (HTTP)..."
-	uv run mcp-server --transport http
-
 inspector: ## Run the server in stdio mode
 	@echo "🚀 Starting MCP server (stdio)..."
 	npx @modelcontextprotocol/inspector uv run mcp-server	
@@ -54,24 +46,3 @@ dev-setup: install ## Setup development environment
 	@echo "🛠️  Setting up development environment..."
 	uv run pre-commit install || true
 	@echo "✅ Development environment ready!"
-
-# Docker commands
-docker-build: ## Build Docker image
-	@echo "🐳 Building MCP Server Docker image..."
-	docker build -t mcp-server:latest .
-	@echo "✅ Docker image built successfully!"
-
-docker-run: docker-build ## Run Docker container with HTTP transport
-	@echo "🚀 Starting MCP Server container (HTTP on port 8000)..."
-	docker run --rm -p 8000:8000 --name mcp-server mcp-server:latest
-
-docker-stop: ## Stop running Docker container
-	@echo "🛑 Stopping MCP Server container..."
-	docker stop mcp-server || true
-
-docker-clean: ## Clean Docker images and containers
-	@echo "🧹 Cleaning Docker artifacts..."
-	docker stop mcp-server || true
-	docker rm mcp-server || true
-	docker rmi mcp-server:latest || true
-	@echo "✅ Docker cleanup complete!"

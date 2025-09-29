@@ -132,7 +132,7 @@ dmypy.json
 .uv/
 
 # IDE
-# .vscode
+.vscode/
 .idea/
 *.swp
 *.swo

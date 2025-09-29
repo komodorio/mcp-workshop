@@ -9,10 +9,10 @@ from mcp.server.session import ServerSession
 class Logger:
     """Singleton logger that uses MCP context for sending messages to clients."""
 
-    _instance: Optional["Logger"] = None
+    _instance: Optional['Logger'] = None
     _ctx: Optional[Context[ServerSession, Any]] = None
 
-    def __new__(cls) -> "Logger":
+    def __new__(cls) -> 'Logger':
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -27,13 +27,7 @@ class Logger:
         if self._ctx is None:
             raise RuntimeError("Logger not initialized. No context available.")
 
-    async def debug(
-        self,
-        message: str,
-        component: str = "server",
-        extra: Optional[Dict[str, Any]] = None,
-        ctx: Optional[Context[ServerSession, Any]] = None,
-    ) -> None:
+    async def debug(self, message: str, component: str = "server", extra: Optional[Dict[str, Any]] = None, ctx: Optional[Context[ServerSession, Any]] = None) -> None:
         """Send debug message to client."""
         try:
             self._auto_initialize(ctx)
@@ -46,13 +40,7 @@ class Logger:
             # Logger not initialized or context not available (tests) - ignore
             pass
 
-    async def info(
-        self,
-        message: str,
-        component: str = "server",
-        extra: Optional[Dict[str, Any]] = None,
-        ctx: Optional[Context[ServerSession, Any]] = None,
-    ) -> None:
+    async def info(self, message: str, component: str = "server", extra: Optional[Dict[str, Any]] = None, ctx: Optional[Context[ServerSession, Any]] = None) -> None:
         """Send info message to client."""
         try:
             self._auto_initialize(ctx)
@@ -65,13 +53,7 @@ class Logger:
             # Logger not initialized or context not available (tests) - ignore
             pass
 
-    async def warning(
-        self,
-        message: str,
-        component: str = "server",
-        extra: Optional[Dict[str, Any]] = None,
-        ctx: Optional[Context[ServerSession, Any]] = None,
-    ) -> None:
+    async def warning(self, message: str, component: str = "server", extra: Optional[Dict[str, Any]] = None, ctx: Optional[Context[ServerSession, Any]] = None) -> None:
         """Send warning message to client."""
         try:
             self._auto_initialize(ctx)
@@ -84,13 +66,7 @@ class Logger:
             # Logger not initialized or context not available (tests) - ignore
             pass
 
-    async def error(
-        self,
-        message: str,
-        component: str = "server",
-        extra: Optional[Dict[str, Any]] = None,
-        ctx: Optional[Context[ServerSession, Any]] = None,
-    ) -> None:
+    async def error(self, message: str, component: str = "server", extra: Optional[Dict[str, Any]] = None, ctx: Optional[Context[ServerSession, Any]] = None) -> None:
         """Send error message to client."""
         try:
             self._auto_initialize(ctx)
