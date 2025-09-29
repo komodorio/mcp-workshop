@@ -394,3 +394,171 @@ These prompts are designed to work seamlessly with AI agents and provide:
 - **Combine Prompts**: Use multiple prompts together for comprehensive analysis (e.g., overview + specific troubleshooting)
 - **Leverage Visuals**: Enable dashboard generation for stakeholder communication and documentation
 - **Context Specificity**: Always specify the appropriate context and namespace for accurate results
+
+---
+
+## 🚀 Kubernetes Deployment + OpenTelemetry Monitoring
+
+This MCP server includes production-ready Kubernetes manifests with comprehensive monitoring and observability.
+
+### Prerequisites
+
+- Kubernetes cluster with nginx ingress controller
+- Container image pushed to a registry (e.g., `ghcr.io/your-org/mcp-server:latest`)
+- TLS certificate secret (optional, for HTTPS)
+
+### Quick Start
+
+1. **Update image and domain in manifests:**
+```bash
+# Update the image in k8s/deployment.yaml
+sed -i 's|ghcr.io/your-org/mcp-server:latest|your-registry/mcp-server:latest|g' k8s/deployment.yaml
+
+# Update domain in k8s/ingress.yaml
+sed -i 's|mcp.YOUR_DOMAIN|mcp.example.com|g' k8s/ingress.yaml
+```
+
+2. **Deploy to Kubernetes:**
+```bash
+# Apply all manifests
+kubectl apply -f infra/
+
+# Or use kustomize
+kubectl apply -k infra/
+```
+
+3. **Verify deployment:**
+```bash
+# Check pods
+kubectl get pods -n mcp
+
+# Check service
+kubectl get svc -n mcp
+
+# Test health endpoint
+kubectl port-forward -n mcp svc/mcp-server 8080:80
+curl http://localhost:8080/mcp
+```
+
+### OpenTelemetry Integration
+
+#### Adding Telemetry to Your Tools
+
+Use the `@tracer()` decorator to instrument your MCP tools:
+
+```python
+from mcp_template.telemetry import tracer
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP(name="my-mcp-server")
+
+@mcp.tool()
+@tracer(
+    name="tool.run_kubectl",
+    redact_keys={"token", "secret", "password"},
+    arg_denylist={"ctx"},
+)
+async def run_kubectl(cmd: str, context: str = None, ctx: Context = None) -> str:
+    """Run kubectl command with telemetry."""
+    # Your tool implementation
+    return "command output"
+```
+
+#### Enabling Telemetry Export
+
+By default, telemetry exporters are disabled to prevent failures when no collector is available. To enable:
+
+```bash
+# Enable OTLP export to collector
+kubectl -n mcp set env deploy/mcp-server \
+  OTEL_TRACES_EXPORTER=otlp \
+  OTEL_METRICS_EXPORTER=otlp \
+  OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector.mcp.svc.cluster.local:4317 \
+  OTEL_EXPORTER_OTLP_PROTOCOL=grpc \
+  OTEL_EXPORTER_OTLP_TIMEOUT=2000
+```
+
+### Monitoring Components
+
+#### 1. OpenTelemetry Collector
+
+- **Purpose**: Receives traces/metrics from MCP server, exports to monitoring backends
+- **Endpoints**: 
+  - OTLP gRPC: `otel-collector.mcp.svc.cluster.local:4317`
+  - OTLP HTTP: `otel-collector.mcp.svc.cluster.local:4318`
+- **Configuration**: Modify `infra/otel-collector.yaml` ConfigMap to add exporters
+
+#### 2. Prometheus Monitoring
+
+- ServiceMonitor included for Prometheus operator
+- Metrics exposed on `/metrics` endpoint
+- Collector metrics available on port 8888
+
+#### 3. Health Checks
+
+- **Root**: `/mcp` - service information
+
+### Scaling and Reliability
+
+#### Horizontal Pod Autoscaler (HPA)
+- Scales 2-6 replicas based on CPU (70%) and memory (80%)
+- Custom scaling policies for smooth scaling behavior
+
+#### Pod Disruption Budget (PDB)
+- Ensures minimum 1 replica during cluster maintenance
+- Protects against voluntary disruptions
+
+#### Resource Management
+- **Requests**: 250m CPU, 256Mi memory
+- **Limits**: 1 CPU, 512Mi memory
+- **Security**: Non-root user, read-only filesystem, dropped capabilities
+
+### Customization
+
+#### Environment Variables
+
+Key environment variables in deployment:
+
+```yaml
+env:
+  # OpenTelemetry
+  - name: OTEL_SERVICE_NAME
+    value: "mcp-server"
+  - name: OTEL_TRACES_EXPORTER
+    value: "none"  # Change to "otlp" to enable
+  - name: OTEL_RESOURCE_ATTRIBUTES
+    value: "service.namespace=mcp,deployment.environment=prod"
+  
+  # Add your custom variables
+  - name: LOG_LEVEL
+    value: "INFO"
+```
+
+#### Ingress Configuration
+
+Customize ingress annotations in `infra/ingress.yaml`:
+
+```yaml
+annotations:
+  # Timeouts for long-running operations
+  nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+  nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+  
+  # CORS for web clients
+  nginx.ingress.kubernetes.io/enable-cors: "true"
+  
+  # Rate limiting (optional)
+  nginx.ingress.kubernetes.io/rate-limit: "100"
+```
+
+### Production Checklist
+
+- [ ] Update image registry and tag in `infra/deployment.yaml`
+- [ ] Configure domain name in `infra/ingress.yaml`
+- [ ] Create TLS certificate secret
+- [ ] Review resource requests/limits
+- [ ] Configure monitoring backend exporters
+- [ ] Set up log aggregation
+- [ ] Configure alerting rules
+- [ ] Test rolling updates
+- [ ] Verify backup/restore procedures

@@ -63,7 +63,9 @@ docker-build: ## Build Docker image
 
 docker-run: docker-build ## Run Docker container with HTTP transport
 	@echo "🚀 Starting MCP Server container (HTTP on port 8000)..."
-	docker run --rm -p 8000:8000 --name mcp-server mcp-server:latest
+	docker run --rm -p 8000:8000 \
+		-v ~/.kube:/home/app/.kube:ro \
+		--name mcp-server mcp-server:latest
 
 docker-stop: ## Stop running Docker container
 	@echo "🛑 Stopping MCP Server container..."

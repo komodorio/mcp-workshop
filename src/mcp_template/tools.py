@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from .helpers import logger
 from .helpers.cmd_runner import run_kubectl_command, CommandError
 from .helpers.k8s import get_default_context
+from .helpers.telemetry import tracer
 
 
 class ConfirmationSchema(BaseModel):
@@ -24,6 +25,11 @@ def register_tools(mcp: FastMCP) -> None:
     """Register all tools with the FastMCP server."""
 
     @mcp.tool()
+    @tracer(
+        name="tool.kubectl",
+        redact_keys={"token", "secret", "password", "key"},
+        arg_denylist={"ctx"},
+    )
     async def kubectl(
         cmd: str,
         context: Optional[str] = None,

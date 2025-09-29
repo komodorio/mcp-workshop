@@ -9,27 +9,31 @@ description = "A clean, simple MCP server template"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "mcp>=1.1.0",
-    "pydantic>=2.0.0",
-    "click>=8.0.0",
-    "uvicorn>=0.30.0",
-    "fastapi>=0.100.0",
-    "anyio>=3.0.0",
-    "pyyaml>=6.0.0",
+    "mcp>=1.15.0",
+    "pydantic>=2.11.9",
+    "click>=8.3.0",
+    "uvicorn>=0.37.0",
+    "fastapi>=0.118.0",
+    "anyio>=4.11.0",
+    "pyyaml>=6.0.3",
+    "opentelemetry-sdk>=1.37.0",
+    "opentelemetry-instrumentation>=0.58b0",
+    "opentelemetry-instrumentation-fastapi>=0.58b0",
+    "opentelemetry-exporter-otlp>=1.37.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "black",
-    "ruff",
-    "mypy",
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov",
-    "httpx>=0.24.0",
-    "pre-commit",
-    "pip-audit",
-    "bandit",
+    "black>=25.9.0",
+    "ruff>=0.13.2",
+    "mypy>=1.18.2",
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.2.0",
+    "pytest-cov>=7.0.0",
+    "httpx>=0.28.1",
+    "pre-commit>=4.3.0",
+    "pip-audit>=2.9.0",
+    "bandit>=1.8.6",
 ]
 
 [project.scripts]

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-server
+  namespace: mcp
+  labels:
+    app: mcp-server
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mcp-server
+  template:
+    metadata:
+      labels:
+        app: mcp-server
+    spec:
+      containers:
+        - name: mcp-server
+          image: ghcr.io/your-org/mcp-server:latest  # Replace with your image
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            # OpenTelemetry - disabled by default (safe)
+            - name: OTEL_SERVICE_NAME
+              value: "mcp-server"
+            - name: OTEL_TRACES_EXPORTER
+              value: "none"  # Change to "otlp" to enable
+            - name: OTEL_METRICS_EXPORTER
+              value: "none"  # Change to "otlp" to enable
+          readinessProbe:
+            httpGet:
+              path: /mcp
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi

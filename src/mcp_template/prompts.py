@@ -10,15 +10,13 @@ from mcp.server.fastmcp import FastMCP, Context
 
 def register_prompts(mcp: FastMCP) -> None:
     """Register all prompts with the FastMCP server."""
-    
+
     @mcp.prompt()
     def diagnose_cluster_issues(
-        context: Optional[str] = None,
-        namespace: Optional[str] = None,
-        focus_area: str = "general"
+        context: Optional[str] = None, namespace: Optional[str] = None, focus_area: str = "general"
     ) -> str:
         """Generate a comprehensive diagnostic prompt for Kubernetes cluster issues.
-        
+
         Args:
             context: Kubernetes context to diagnose (optional, uses current if not specified)
             namespace: Specific namespace to focus on (optional, checks all if not specified)
@@ -26,18 +24,18 @@ def register_prompts(mcp: FastMCP) -> None:
         """
         context_info = f" in context '{context}'" if context else ""
         namespace_info = f" in namespace '{namespace}'" if namespace else " across all namespaces"
-        
+
         diagnostic_areas = {
             "general": "overall cluster health including nodes, pods, and system components",
             "pods": "pod status, restarts, resource usage, and container issues",
             "services": "service endpoints, load balancers, and networking configuration",
             "networking": "network policies, DNS resolution, and connectivity issues",
             "storage": "persistent volumes, storage classes, and mount issues",
-            "performance": "resource utilization, bottlenecks, and scaling issues"
+            "performance": "resource utilization, bottlenecks, and scaling issues",
         }
-        
+
         focus_description = diagnostic_areas.get(focus_area, "general cluster health")
-        
+
         return f"""Please perform a comprehensive Kubernetes cluster diagnostic focused on {focus_description}{context_info}{namespace_info}.
 
 Use the available kubectl tools to:
@@ -71,26 +69,31 @@ Please start by gathering the cluster information and then provide a structured 
     def cluster_health_overview(
         context: Optional[str] = None,
         include_metrics: bool = True,
-        generate_dashboard: bool = False
+        generate_dashboard: bool = False,
     ) -> str:
         """Generate a prompt for comprehensive cluster health overview and monitoring dashboard.
-        
+
         Args:
             context: Kubernetes context to analyze (optional, uses current if not specified)
             include_metrics: Whether to include detailed resource metrics and utilization
             generate_dashboard: Whether to generate a visual dashboard representation
         """
         context_info = f" for context '{context}'" if context else ""
-        
-        dashboard_section = """
+
+        dashboard_section = (
+            """
 6. **Visual Dashboard** (create a comprehensive monitoring dashboard):
    - Generate a Mermaid diagram showing cluster architecture
    - Create charts showing resource utilization trends
    - Include status indicators for all major components
    - Add capacity planning recommendations
-""" if generate_dashboard else ""
-        
-        metrics_section = """
+"""
+            if generate_dashboard
+            else ""
+        )
+
+        metrics_section = (
+            """
 4. **Resource Metrics & Utilization**:
    - CPU and memory usage across nodes and pods
    - Storage utilization and available capacity
@@ -101,8 +104,11 @@ Please start by gathering the cluster information and then provide a structured 
    - Current vs. requested vs. allocated resources
    - Scaling recommendations for deployments
    - Node capacity analysis and expansion needs
-""" if include_metrics else ""
-        
+"""
+            if include_metrics
+            else ""
+        )
+
         return f"""Please provide a comprehensive Kubernetes cluster health overview{context_info}.
 
 Analyze and report on:
@@ -139,10 +145,10 @@ Start by gathering cluster information using the available kubectl tools."""
         workload_name: str,
         namespace: str = "default",
         context: Optional[str] = None,
-        include_logs: bool = True
+        include_logs: bool = True,
     ) -> str:
         """Generate a targeted troubleshooting prompt for specific Kubernetes workloads.
-        
+
         Args:
             workload_type: Type of workload (deployment, pod, service, statefulset, etc.)
             workload_name: Name of the specific workload to troubleshoot
@@ -151,14 +157,18 @@ Start by gathering cluster information using the available kubectl tools."""
             include_logs: Whether to include log analysis in troubleshooting
         """
         context_info = f" in context '{context}'" if context else ""
-        log_section = """
+        log_section = (
+            """
 6. **Log Analysis**:
    - Retrieve and analyze recent logs from all containers
    - Look for error patterns, stack traces, and warning messages
    - Check for resource exhaustion indicators
    - Examine startup and shutdown sequences
-""" if include_logs else ""
-        
+"""
+            if include_logs
+            else ""
+        )
+
         return f"""Please troubleshoot the {workload_type} '{workload_name}' in namespace '{namespace}'{context_info}.
 
 Perform systematic troubleshooting:
@@ -206,10 +216,10 @@ Please create a detailed troubleshooting report with root cause analysis and act
         context: Optional[str] = None,
         namespace: Optional[str] = None,
         include_networking: bool = True,
-        diagram_format: str = "mermaid"
+        diagram_format: str = "mermaid",
     ) -> str:
         """Generate a prompt to create comprehensive Kubernetes architecture diagrams.
-        
+
         Args:
             scope: Scope of diagram (cluster, namespace, application, networking)
             context: Kubernetes context to diagram
@@ -219,23 +229,27 @@ Please create a detailed troubleshooting report with root cause analysis and act
         """
         context_info = f" in context '{context}'" if context else ""
         namespace_info = f" focusing on namespace '{namespace}'" if namespace else ""
-        
+
         scope_instructions = {
             "cluster": "Create a high-level cluster architecture showing nodes, namespaces, and major components",
             "namespace": f"Detail the architecture within namespace '{namespace}' showing all workloads and their relationships",
             "application": f"Focus on application-level architecture within '{namespace}' showing microservices and data flow",
-            "networking": "Emphasize network topology, ingress, services, and communication patterns"
+            "networking": "Emphasize network topology, ingress, services, and communication patterns",
         }
-        
+
         instruction = scope_instructions.get(scope, scope_instructions["cluster"])
-        
-        network_section = """
+
+        network_section = (
+            """
 - Network policies and traffic flow
 - Ingress controllers and load balancers  
 - Service mesh components (if present)
 - DNS and service discovery patterns
-""" if include_networking else ""
-        
+"""
+            if include_networking
+            else ""
+        )
+
         return f"""Please create a comprehensive Kubernetes architecture diagram{context_info}{namespace_info}.
 
 {instruction}
