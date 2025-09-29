@@ -33,7 +33,7 @@ def register_resources(mcp: FastMCP) -> None:
         except Exception as e:
             return ErrorResponse(
                 error=f"Error getting cluster info for context '{context}': {str(e)}",
-                context=context
+                context=context,
             )
 
     @mcp.resource("kubectl://namespaces/{context}")
@@ -46,6 +46,5 @@ def register_resources(mcp: FastMCP) -> None:
             return namespaces
         except Exception as e:
             return ErrorResponse(
-                error=f"Error getting namespaces for context '{context}': {str(e)}",
-                context=context
+                error=f"Error getting namespaces for context '{context}': {str(e)}", context=context
             )

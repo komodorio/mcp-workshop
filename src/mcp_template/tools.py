@@ -7,9 +7,17 @@ This is where you define your tools. Users mainly need to modify this file.
 from typing import Any, Dict, List, Optional, Union
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.session import ServerSession
+from mcp.server.elicitation import AcceptedElicitation, DeclinedElicitation, CancelledElicitation
+from pydantic import BaseModel
 from .helpers import logger
 from .helpers.cmd_runner import run_kubectl_command, CommandError
 from .helpers.k8s import get_default_context
+
+
+class ConfirmationSchema(BaseModel):
+    """Schema for user confirmation."""
+
+    accept: bool
 
 
 def register_tools(mcp: FastMCP) -> None:
@@ -19,7 +27,7 @@ def register_tools(mcp: FastMCP) -> None:
     async def kubectl(
         cmd: str,
         context: Optional[str] = None,
-        namespace: Optional[str] = "default",
+        namespace: Optional[str] = None,
         output_format: str = "json",
         timeout: float = 30.0,
         ctx: Context[ServerSession, Any] = None,
@@ -48,42 +56,72 @@ def register_tools(mcp: FastMCP) -> None:
             kubectl("delete pod my-pod") - Will ask for confirmation
         """
         args = cmd.split(" ")
-        
+
         # Get the actual current context if not specified
         if context is None:
             context = await get_default_context(ctx=ctx)
-        
+
         # Check if this is a potentially dangerous command that requires confirmation
         dangerous_commands = {
-            "delete", "apply", "create", "replace", "patch", "edit", 
-            "scale", "rollout", "drain", "cordon", "uncordon", "taint"
+            "delete",
+            "apply",
+            "create",
+            "replace",
+            "patch",
+            "edit",
+            "scale",
+            "rollout",
+            "drain",
+            "cordon",
+            "uncordon",
+            "taint",
         }
-        
+
         if args and args[0].lower() in dangerous_commands:
             await logger.warning(
-                f"Dangerous kubectl command detected: {' '.join(args)}", 
-                component="kubectl", 
-                ctx=ctx
+                f"Dangerous kubectl command detected: {' '.join(args)}",
+                component="kubectl",
+                ctx=ctx,
             )
-            
+
             # Request user confirmation for dangerous operations
             confirmation = await ctx.elicit(
-                message=f"⚠️  This command may modify cluster state: `kubectl {cmd}`\n\nDo you want to proceed?",
-                response_type=None  # Simple yes/no confirmation
+                f"⚠️  This command may modify cluster state: `kubectl {cmd}`\n\nDo you want to proceed?",
+                ConfirmationSchema,
             )
-            
-            if confirmation.action != "accept":
-                await logger.info(
-                    f"kubectl command cancelled by user: {' '.join(args)}", 
-                    component="kubectl", 
-                    ctx=ctx
-                )
-                return "Command cancelled by user"
-        
+
+            match confirmation:
+                case AcceptedElicitation(data=response):
+                    if response.accept:
+                        await logger.info(
+                            f"User confirmed dangerous command: {' '.join(args)}",
+                            component="kubectl",
+                            ctx=ctx,
+                        )
+                    else:
+                        await logger.info(
+                            f"User rejected dangerous command: {' '.join(args)}",
+                            component="kubectl",
+                            ctx=ctx,
+                        )
+                        return "Command rejected by user"
+                case DeclinedElicitation():
+                    await logger.info(
+                        f"User declined dangerous command: {' '.join(args)}",
+                        component="kubectl",
+                        ctx=ctx,
+                    )
+                    return "Command declined by user"
+                case CancelledElicitation():
+                    await logger.info(
+                        f"User cancelled dangerous command: {' '.join(args)}",
+                        component="kubectl",
+                        ctx=ctx,
+                    )
+                    return "Command cancelled by user"
+
         await logger.info(
-            f"Executing kubectl command: {' '.join(args)}", 
-            component="kubectl", 
-            ctx=ctx
+            f"Executing kubectl command: {' '.join(args)}", component="kubectl", ctx=ctx
         )
 
         try:
@@ -95,15 +133,13 @@ def register_tools(mcp: FastMCP) -> None:
                 timeout=timeout,
                 ctx=ctx,
             )
-            
+
             await logger.debug(
-                f"kubectl command completed successfully", 
-                component="kubectl", 
-                ctx=ctx
+                f"kubectl command completed successfully", component="kubectl", ctx=ctx
             )
-            
+
             return result
-            
+
         except CommandError as e:
             await logger.error(
                 f"kubectl command failed: {e.message}",
