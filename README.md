@@ -207,20 +207,6 @@ We'll use git branches to organize our learning journey, with each branch repres
 
 ---
 
-### **Branch: `komodor-mcp`** 
-**Goal:** Advanced integration with Komodor platform
-- Komodor API integration
-- Enhanced troubleshooting capabilities
-- Advanced monitoring and insights
-- Production-grade observability
-
-**Deliverables:**
-- Komodor MCP integration
-- Advanced diagnostic capabilities
-- Production monitoring dashboards
-
----
-
 **Advanced MCP Capabilities:**
 - **Interactive Elicitation** - User confirmations for dangerous operations
 - **Multi-Transport Support** - stdio, SSE, and HTTP transports  
