@@ -1,16 +1,18 @@
-import subprocess
-import json
 import asyncio
-from typing import Any, Dict, List, Optional, Union
+import json
+import subprocess
+from typing import Any
+
 from mcp.server.fastmcp import Context
 from mcp.server.session import ServerSession
+
 from . import logger
 
 
 class CommandError(Exception):
     """Custom exception for command execution errors."""
 
-    def __init__(self, message: str, cmd: List[str], returncode: int, stderr: str = ""):
+    def __init__(self, message: str, cmd: list[str], returncode: int, stderr: str = ""):
         self.message = message
         self.cmd = cmd
         self.returncode = returncode
@@ -19,16 +21,16 @@ class CommandError(Exception):
 
 
 async def run_command(
-    cmd: List[str],
+    cmd: list[str],
     *,
-    timeout: Optional[float] = 30.0,
+    timeout: float | None = 30.0,
     check: bool = True,
     parse_json: bool = False,
     log_errors: bool = True,
-    cwd: Optional[str] = None,
-    env: Optional[Dict[str, str]] = None,
-    ctx: Optional[Context[ServerSession, Any]] = None,
-) -> Union[str, Dict[str, Any], List[Any]]:
+    cwd: str | None = None,
+    env: dict[str, str] | None = None,
+    ctx: Context[ServerSession, Any] | None = None,
+) -> str | dict[str, Any] | list[Any]:
     """
     Run a command with comprehensive error handling and optional JSON parsing.
 
@@ -100,7 +102,7 @@ async def run_command(
         )
         return result.stdout
 
-    except subprocess.TimeoutExpired as e:
+    except subprocess.TimeoutExpired:
         error_msg = f"Command timed out after {timeout}s: {cmd_str}"
         if log_errors:
             await logger.error(error_msg, component="cmd_runner", ctx=ctx)
@@ -113,14 +115,14 @@ async def run_command(
 
 
 async def run_kubectl_command(
-    args: List[str],
+    args: list[str],
     *,
-    context: Optional[str] = None,
-    namespace: Optional[str] = None,
+    context: str | None = None,
+    namespace: str | None = None,
     output_format: str = "json",
-    ctx: Optional[Context[ServerSession, Any]] = None,
+    ctx: Context[ServerSession, Any] | None = None,
     **kwargs,
-) -> Union[str, Dict[str, Any], List[Any]]:
+) -> str | dict[str, Any] | list[Any]:
     """
     Run a kubectl command with common options.
 

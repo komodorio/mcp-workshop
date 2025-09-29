@@ -4,13 +4,15 @@ Tools implementation for MCP server.
 This is where you define your tools. Users mainly need to modify this file.
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
+
+from mcp.server.elicitation import AcceptedElicitation, CancelledElicitation, DeclinedElicitation
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.session import ServerSession
-from mcp.server.elicitation import AcceptedElicitation, DeclinedElicitation, CancelledElicitation
 from pydantic import BaseModel
+
 from .helpers import logger
-from .helpers.cmd_runner import run_kubectl_command, CommandError
+from .helpers.cmd_runner import CommandError, run_kubectl_command
 from .helpers.k8s import get_default_context
 from .helpers.telemetry import tracer
 
@@ -32,12 +34,12 @@ def register_tools(mcp: FastMCP) -> None:
     )
     async def kubectl(
         cmd: str,
-        context: Optional[str] = None,
-        namespace: Optional[str] = None,
+        context: str | None = None,
+        namespace: str | None = None,
         output_format: str = "json",
         timeout: float = 30.0,
         ctx: Context[ServerSession, Any] = None,
-    ) -> Union[str, Dict[str, Any], List[Any]]:
+    ) -> str | dict[str, Any] | list[Any]:
         """Execute kubectl commands with comprehensive error handling.
 
         Dangerous commands (delete, apply, create, etc.) will prompt for user confirmation
@@ -141,7 +143,7 @@ def register_tools(mcp: FastMCP) -> None:
             )
 
             await logger.debug(
-                f"kubectl command completed successfully", component="kubectl", ctx=ctx
+                "kubectl command completed successfully", component="kubectl", ctx=ctx
             )
 
             return result

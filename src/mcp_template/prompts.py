@@ -4,8 +4,7 @@ Prompts implementation for MCP server.
 This is where you define your prompts. Users mainly need to modify this file.
 """
 
-from typing import Optional
-from mcp.server.fastmcp import FastMCP, Context
+from mcp.server.fastmcp import FastMCP
 
 
 def register_prompts(mcp: FastMCP) -> None:
@@ -13,7 +12,7 @@ def register_prompts(mcp: FastMCP) -> None:
 
     @mcp.prompt()
     def diagnose_cluster_issues(
-        context: Optional[str] = None, namespace: Optional[str] = None, focus_area: str = "general"
+        context: str | None = None, namespace: str | None = None, focus_area: str = "general"
     ) -> str:
         """Generate a comprehensive diagnostic prompt for Kubernetes cluster issues.
 
@@ -67,7 +66,7 @@ Please start by gathering the cluster information and then provide a structured 
 
     @mcp.prompt()
     def cluster_health_overview(
-        context: Optional[str] = None,
+        context: str | None = None,
         include_metrics: bool = True,
         generate_dashboard: bool = False,
     ) -> str:
@@ -144,7 +143,7 @@ Start by gathering cluster information using the available kubectl tools."""
         workload_type: str,
         workload_name: str,
         namespace: str = "default",
-        context: Optional[str] = None,
+        context: str | None = None,
         include_logs: bool = True,
     ) -> str:
         """Generate a targeted troubleshooting prompt for specific Kubernetes workloads.
@@ -213,8 +212,8 @@ Please create a detailed troubleshooting report with root cause analysis and act
     @mcp.prompt()
     def generate_architecture_diagram(
         scope: str = "cluster",
-        context: Optional[str] = None,
-        namespace: Optional[str] = None,
+        context: str | None = None,
+        namespace: str | None = None,
         include_networking: bool = True,
         diagram_format: str = "mermaid",
     ) -> str:

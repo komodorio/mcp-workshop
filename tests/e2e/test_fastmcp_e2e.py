@@ -1,6 +1,7 @@
 """Simple E2E tests for FastMCP server."""
 
 import pytest
+
 from mcp_template.server import create_server
 
 

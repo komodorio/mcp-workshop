@@ -1,20 +1,22 @@
 import os
-import yaml
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
+
+import yaml
 from mcp.server.fastmcp import Context
 from mcp.server.session import ServerSession
-from .cmd_runner import run_command, run_kubectl_command
+
 from ..models import (
+    ClusterInfo,
     KubectlContext,
     KubectlContextsResponse,
-    ClusterInfo,
     KubernetesNamespace,
     NamespacesResponse,
 )
+from .cmd_runner import run_command, run_kubectl_command
 
 
-async def get_default_context(ctx: Optional[Context[ServerSession, Any]] = None) -> Optional[str]:
+async def get_default_context(ctx: Context[ServerSession, Any] | None = None) -> str | None:
     """Get the current default kubectl context.
 
     First tries to get it via kubectl command, then falls back to reading kubeconfig file.
@@ -37,14 +39,14 @@ async def get_default_context(ctx: Optional[Context[ServerSession, Any]] = None)
 
 
 async def get_kubectl_contexts(
-    ctx: Optional[Context[ServerSession, Any]] = None
+    ctx: Context[ServerSession, Any] | None = None,
 ) -> KubectlContextsResponse:
     """Get list of available kubectl contexts by reading the kubeconfig file."""
     # Get kubeconfig path from environment or default location
     kubeconfig_path = os.environ.get("KUBECONFIG", str(Path.home() / ".kube" / "config"))
 
     try:
-        with open(kubeconfig_path, "r") as f:
+        with open(kubeconfig_path) as f:
             kubeconfig = yaml.safe_load(f)
 
         contexts = []
@@ -73,7 +75,7 @@ async def get_kubectl_contexts(
 
 
 async def get_cluster_info(
-    context: Optional[str] = None, ctx: Optional[Context[ServerSession, Any]] = None
+    context: str | None = None, ctx: Context[ServerSession, Any] | None = None
 ) -> ClusterInfo:
     """Get cluster information for specified context or default."""
     # Get cluster info
@@ -94,7 +96,7 @@ async def get_cluster_info(
 
 
 async def get_namespaces(
-    context: Optional[str] = None, ctx: Optional[Context[ServerSession, Any]] = None
+    context: str | None = None, ctx: Context[ServerSession, Any] | None = None
 ) -> NamespacesResponse:
     """Get list of namespaces in the cluster."""
     namespaces_data = await run_kubectl_command(["get", "namespaces"], context=context, ctx=ctx)

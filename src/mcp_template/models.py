@@ -4,7 +4,8 @@ Pydantic models for MCP server responses.
 This module defines structured response models for better schema capabilities.
 """
 
-from typing import List, Optional, Any, Dict
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -21,7 +22,7 @@ class KubectlContext(BaseModel):
 class KubectlContextsResponse(BaseModel):
     """Response model for kubectl contexts."""
 
-    contexts: List[KubectlContext] = Field(description="List of available contexts")
+    contexts: list[KubectlContext] = Field(description="List of available contexts")
     total_count: int = Field(description="Total number of contexts")
 
 
@@ -36,8 +37,8 @@ class ClusterInfo(BaseModel):
 class KubernetesNamespace(BaseModel):
     """Model for a Kubernetes namespace."""
 
-    metadata: Dict[str, Any] = Field(description="Namespace metadata")
-    status: Optional[Dict[str, Any]] = Field(default=None, description="Namespace status")
+    metadata: dict[str, Any] = Field(description="Namespace metadata")
+    status: dict[str, Any] | None = Field(default=None, description="Namespace status")
 
     @property
     def name(self) -> str:
@@ -45,12 +46,12 @@ class KubernetesNamespace(BaseModel):
         return self.metadata.get("name", "")
 
     @property
-    def creation_timestamp(self) -> Optional[str]:
+    def creation_timestamp(self) -> str | None:
         """Get the creation timestamp."""
         return self.metadata.get("creationTimestamp")
 
     @property
-    def phase(self) -> Optional[str]:
+    def phase(self) -> str | None:
         """Get the namespace phase."""
         if self.status:
             return self.status.get("phase")
@@ -60,7 +61,7 @@ class KubernetesNamespace(BaseModel):
 class NamespacesResponse(BaseModel):
     """Response model for namespaces."""
 
-    namespaces: List[KubernetesNamespace] = Field(description="List of namespaces")
+    namespaces: list[KubernetesNamespace] = Field(description="List of namespaces")
     total_count: int = Field(description="Total number of namespaces")
     context: str = Field(description="Context used to fetch namespaces")
 
@@ -69,5 +70,5 @@ class ErrorResponse(BaseModel):
     """Model for error responses."""
 
     error: str = Field(description="Error message")
-    context: Optional[str] = Field(default=None, description="Context where error occurred")
-    details: Optional[Dict[str, Any]] = Field(default=None, description="Additional error details")
+    context: str | None = Field(default=None, description="Context where error occurred")
+    details: dict[str, Any] | None = Field(default=None, description="Additional error details")

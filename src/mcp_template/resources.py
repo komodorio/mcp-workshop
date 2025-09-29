@@ -4,11 +4,11 @@ Resources implementation for MCP server.
 This is where you define your resources. Users mainly need to modify this file.
 """
 
-from typing import Union
 from mcp.server.fastmcp import FastMCP
-from .helpers.k8s import get_kubectl_contexts, get_cluster_info, get_namespaces
-from .models import KubectlContextsResponse, ClusterInfo, NamespacesResponse, ErrorResponse
+
+from .helpers.k8s import get_cluster_info, get_kubectl_contexts, get_namespaces
 from .helpers.telemetry import tracer
+from .models import ClusterInfo, ErrorResponse, KubectlContextsResponse, NamespacesResponse
 
 
 def register_resources(mcp: FastMCP) -> None:
@@ -19,7 +19,7 @@ def register_resources(mcp: FastMCP) -> None:
         name="resource.kubectl_contexts",
         attribute_prefix="mcp.resource",
     )
-    async def kubectl_contexts() -> Union[KubectlContextsResponse, ErrorResponse]:
+    async def kubectl_contexts() -> KubectlContextsResponse | ErrorResponse:
         """List all available kubectl contexts."""
         try:
             contexts = await get_kubectl_contexts(ctx=mcp.get_context())
@@ -32,7 +32,7 @@ def register_resources(mcp: FastMCP) -> None:
         name="resource.kubectl_cluster_info",
         attribute_prefix="mcp.resource",
     )
-    async def kubectl_cluster_info(context: str = "default") -> Union[ClusterInfo, ErrorResponse]:
+    async def kubectl_cluster_info(context: str = "default") -> ClusterInfo | ErrorResponse:
         """Get cluster information for specified context."""
         try:
             cluster_info = await get_cluster_info(
@@ -50,7 +50,7 @@ def register_resources(mcp: FastMCP) -> None:
         name="resource.kubectl_namespaces",
         attribute_prefix="mcp.resource",
     )
-    async def kubectl_namespaces_context(context: str) -> Union[NamespacesResponse, ErrorResponse]:
+    async def kubectl_namespaces_context(context: str) -> NamespacesResponse | ErrorResponse:
         """List all namespaces in the specified context."""
         try:
             namespaces = await get_namespaces(

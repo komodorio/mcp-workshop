@@ -3,8 +3,9 @@
 import asyncio
 import inspect
 import re
+from collections.abc import Callable, Iterable
 from functools import wraps
-from typing import Any, Callable, Dict, Iterable, Optional
+from typing import Any
 
 from opentelemetry import trace
 from opentelemetry.trace import SpanKind
@@ -40,7 +41,7 @@ def _should_redact(key: str, value: Any, redact_keys: Iterable[str]) -> bool:
     return False
 
 
-def _bind_args(func: Callable, args: tuple, kwargs: dict) -> Dict[str, Any]:
+def _bind_args(func: Callable, args: tuple, kwargs: dict) -> dict[str, Any]:
     sig = inspect.signature(func)
     bound = sig.bind_partial(*args, **kwargs)
     bound.apply_defaults()
@@ -48,16 +49,16 @@ def _bind_args(func: Callable, args: tuple, kwargs: dict) -> Dict[str, Any]:
 
 
 def tracer(
-    name: Optional[str] = None,
+    name: str | None = None,
     *,
     attribute_prefix: str = "mcp.tool",
-    arg_allowlist: Optional[Iterable[str]] = None,
-    arg_denylist: Optional[Iterable[str]] = None,
+    arg_allowlist: Iterable[str] | None = None,
+    arg_denylist: Iterable[str] | None = None,
     redact_keys: Iterable[str] = (),
     capture_return_len: bool = True,
     max_value_len: int = 256,
     kind: SpanKind = SpanKind.INTERNAL,
-    tracer_provider: Optional[TracerLike] = None,
+    tracer_provider: TracerLike | None = None,
 ) -> Callable[[Callable], Callable]:
     """
     Decorator factory for instrumenting MCP tool functions.
@@ -87,7 +88,7 @@ def tracer(
         deny = {x.lower() for x in arg_denylist} if arg_denylist else set()
         redact = set(x.lower() for x in redact_keys)
 
-        def _add_arg_attributes(span, bound_args: Dict[str, Any]):
+        def _add_arg_attributes(span, bound_args: dict[str, Any]):
             for k, v in bound_args.items():
                 kl = k.lower()
                 if k.startswith("_"):
@@ -103,7 +104,7 @@ def tracer(
                         f"{attribute_prefix}.arg.{k}", _truncate(v, max_len=max_value_len)
                     )
 
-        def _enrich_with_ctx(span, bound_args: Dict[str, Any]):
+        def _enrich_with_ctx(span, bound_args: dict[str, Any]):
             ctx = bound_args.get("ctx") or bound_args.get("context")
             if ctx is None:
                 return

@@ -1,6 +1,6 @@
 """Singleton MCP context logging utilities."""
 
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from mcp.server.fastmcp import Context
 from mcp.server.session import ServerSession
@@ -10,14 +10,14 @@ class Logger:
     """Singleton logger that uses MCP context for sending messages to clients."""
 
     _instance: Optional["Logger"] = None
-    _ctx: Optional[Context[ServerSession, Any]] = None
+    _ctx: Context[ServerSession, Any] | None = None
 
     def __new__(cls) -> "Logger":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def _auto_initialize(self, ctx: Optional[Context[ServerSession, Any]]) -> None:
+    def _auto_initialize(self, ctx: Context[ServerSession, Any] | None) -> None:
         """Auto-initialize logger with context if not already initialized."""
         if ctx and self._ctx is None:
             self._ctx = ctx
@@ -31,8 +31,8 @@ class Logger:
         self,
         message: str,
         component: str = "server",
-        extra: Optional[Dict[str, Any]] = None,
-        ctx: Optional[Context[ServerSession, Any]] = None,
+        extra: dict[str, Any] | None = None,
+        ctx: Context[ServerSession, Any] | None = None,
     ) -> None:
         """Send debug message to client."""
         try:
@@ -50,8 +50,8 @@ class Logger:
         self,
         message: str,
         component: str = "server",
-        extra: Optional[Dict[str, Any]] = None,
-        ctx: Optional[Context[ServerSession, Any]] = None,
+        extra: dict[str, Any] | None = None,
+        ctx: Context[ServerSession, Any] | None = None,
     ) -> None:
         """Send info message to client."""
         try:
@@ -69,8 +69,8 @@ class Logger:
         self,
         message: str,
         component: str = "server",
-        extra: Optional[Dict[str, Any]] = None,
-        ctx: Optional[Context[ServerSession, Any]] = None,
+        extra: dict[str, Any] | None = None,
+        ctx: Context[ServerSession, Any] | None = None,
     ) -> None:
         """Send warning message to client."""
         try:
@@ -88,8 +88,8 @@ class Logger:
         self,
         message: str,
         component: str = "server",
-        extra: Optional[Dict[str, Any]] = None,
-        ctx: Optional[Context[ServerSession, Any]] = None,
+        extra: dict[str, Any] | None = None,
+        ctx: Context[ServerSession, Any] | None = None,
     ) -> None:
         """Send error message to client."""
         try:

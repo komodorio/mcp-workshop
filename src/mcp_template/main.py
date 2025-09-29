@@ -4,8 +4,6 @@
 import sys
 
 import click
-from starlette.applications import Starlette
-from starlette.routing import Mount, Host
 
 from .server import create_server
 
