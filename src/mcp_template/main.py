@@ -4,7 +4,8 @@
 import sys
 
 import click
-import uvicorn
+from starlette.applications import Starlette
+from starlette.routing import Mount, Host
 
 from .server import create_server
 
@@ -46,26 +47,18 @@ def main(transport: str, host: str, port: int, reload: bool) -> None:
             server.run()
         elif transport == "sse":
             reload_msg = " (auto-reload enabled)" if reload else ""
-            click.echo(f"🚀 Starting MCP server with SSE transport on {host}:{port}{reload_msg}...", err=True)
-            uvicorn.run(
-                "mcp_template.server:create_server",
-                factory=True,
-                host=host,
-                port=port,
-                reload=reload,
-                reload_dirs=["src"] if reload else None,
+            click.echo(
+                f"🚀 Starting MCP server with SSE transport on {host}:{port}{reload_msg}...",
+                err=True,
             )
+            server.run(transport="sse", mount_path="/")
         elif transport == "http":
             reload_msg = " (auto-reload enabled)" if reload else ""
-            click.echo(f"🚀 Starting MCP server with HTTP transport on {host}:{port}{reload_msg}...", err=True)
-            uvicorn.run(
-                "mcp_template.server:create_server",
-                factory=True,
-                host=host,
-                port=port,
-                reload=reload,
-                reload_dirs=["src"] if reload else None,
+            click.echo(
+                f"🚀 Starting MCP server with HTTP transport on {host}:{port}{reload_msg}...",
+                err=True,
             )
+            server.run(transport="streamable-http")
     except KeyboardInterrupt:
         click.echo("\n👋 Server stopped by user", err=True)
         sys.exit(0)
