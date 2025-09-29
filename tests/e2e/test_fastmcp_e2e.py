@@ -21,8 +21,7 @@ async def test_server_tool_registration():
     tools = await server.list_tools()
     tool_names = {tool.name for tool in tools}
     expected_tools = {
-        "echo",
-        "advanced_calculator",
+        "kubectl",
     }
     assert expected_tools.issubset(tool_names)
 
@@ -35,7 +34,12 @@ async def test_server_prompt_registration():
     # Check prompts are available via the public API
     prompts = await server.list_prompts()
     prompt_names = {prompt.name for prompt in prompts}
-    expected_prompts = {"hello_world", "code_review"}
+    expected_prompts = {
+        "diagnose_cluster_issues", 
+        "cluster_health_overview", 
+        "troubleshoot_workload", 
+        "generate_architecture_diagram"
+    }
     assert expected_prompts.issubset(prompt_names)
 
 
@@ -47,7 +51,7 @@ async def test_server_resource_registration():
     # Check resources are available via the public API
     resources = await server.list_resources()
     resource_uris = {str(resource.uri) for resource in resources}
-    expected_resources = {"server://info", "server://status"}
+    expected_resources = {"kubectl://contexts"}
     assert expected_resources.issubset(resource_uris)
 
 
