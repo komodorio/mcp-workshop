@@ -150,10 +150,22 @@ async def run_kubectl_command(
         cmd.extend(["--namespace", namespace])
 
     # Add output format if not already specified
-    if output_format and not any(arg.startswith(("-o", "--output")) for arg in args):
+    has_output_flag = any(arg.startswith(("-o", "--output")) for arg in args)
+    if output_format and not has_output_flag:
         cmd.extend(["--output", output_format])
 
     # Parse JSON by default if output format is json
     parse_json = kwargs.pop("parse_json", output_format == "json")
 
-    return await run_command(cmd, parse_json=parse_json, ctx=ctx, **kwargs)
+    try:
+        return await run_command(cmd, parse_json=parse_json, ctx=ctx, **kwargs)
+    except CommandError as e:
+        if "unknown flag: --output" in e.stderr or "unknown flag: --output" in e.message:
+            await logger.debug(
+                f"Command doesn't support --output flag, retrying without it",
+                component="cmd_runner",
+                ctx=ctx,
+            )
+            cmd_without_output = [arg for arg in cmd if arg not in ["--output", output_format]]
+            return await run_command(cmd_without_output, parse_json=False, ctx=ctx, **kwargs)
+        raise

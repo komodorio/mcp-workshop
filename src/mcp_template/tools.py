@@ -17,6 +17,7 @@ from .helpers.cmd_runner import CommandError, run_kubectl_command
 from .helpers.k8s import get_default_context
 from .helpers.telemetry import tracer
 
+approval_required = False
 
 class ConfirmationSchema(BaseModel):
     """Schema for user confirmation."""
@@ -85,49 +86,49 @@ def register_tools(mcp: FastMCP) -> None:
             "uncordon",
             "taint",
         }
+        if approval_required:
+            if args and args[0].lower() in dangerous_commands:
+                await logger.warning(
+                    f"Dangerous kubectl command detected: {' '.join(args)}",
+                    component="kubectl",
+                    ctx=ctx,
+                )
 
-        if args and args[0].lower() in dangerous_commands:
-            await logger.warning(
-                f"Dangerous kubectl command detected: {' '.join(args)}",
-                component="kubectl",
-                ctx=ctx,
-            )
+                # Request user confirmation for dangerous operations
+                confirmation = await ctx.elicit(
+                    f"⚠️  This command may modify cluster state: `kubectl {cmd}`\n\nDo you want to proceed?",
+                    ConfirmationSchema,
+                )
 
-            # Request user confirmation for dangerous operations
-            confirmation = await ctx.elicit(
-                f"⚠️  This command may modify cluster state: `kubectl {cmd}`\n\nDo you want to proceed?",
-                ConfirmationSchema,
-            )
-
-            match confirmation:
-                case AcceptedElicitation(data=response):
-                    if response.accept:
+                match confirmation:
+                    case AcceptedElicitation(data=response):
+                        if response.accept:
+                            await logger.info(
+                                f"User confirmed dangerous command: {' '.join(args)}",
+                                component="kubectl",
+                                ctx=ctx,
+                            )
+                        else:
+                            await logger.info(
+                                f"User rejected dangerous command: {' '.join(args)}",
+                                component="kubectl",
+                                ctx=ctx,
+                            )
+                            return "Command rejected by user"
+                    case DeclinedElicitation():
                         await logger.info(
-                            f"User confirmed dangerous command: {' '.join(args)}",
+                            f"User declined dangerous command: {' '.join(args)}",
                             component="kubectl",
                             ctx=ctx,
                         )
-                    else:
+                        return "Command declined by user"
+                    case CancelledElicitation():
                         await logger.info(
-                            f"User rejected dangerous command: {' '.join(args)}",
+                            f"User cancelled dangerous command: {' '.join(args)}",
                             component="kubectl",
                             ctx=ctx,
                         )
-                        return "Command rejected by user"
-                case DeclinedElicitation():
-                    await logger.info(
-                        f"User declined dangerous command: {' '.join(args)}",
-                        component="kubectl",
-                        ctx=ctx,
-                    )
-                    return "Command declined by user"
-                case CancelledElicitation():
-                    await logger.info(
-                        f"User cancelled dangerous command: {' '.join(args)}",
-                        component="kubectl",
-                        ctx=ctx,
-                    )
-                    return "Command cancelled by user"
+                        return "Command cancelled by user"
 
         await logger.info(
             f"Executing kubectl command: {' '.join(args)}", component="kubectl", ctx=ctx
