@@ -46,7 +46,7 @@ except ImportError:
 def create_server() -> FastMCP:
     """Create and configure the MCP server."""
     # Create FastMCP server with lifespan management
-    mcp = FastMCP(name="mcp-server")
+    mcp = FastMCP(name="mcp-server", instructions="You are a Kubernetes operations assistant. Use kubectl tool to inspect pods, deployments, services, and logs. Use base64 tool to decode secrets or encode config data. Always check current cluster context first, request user confirmation for any destructive operations, and provide actionable troubleshooting steps.")
 
     # Register all handlers with the mcp instance
     prompts.register_prompts(mcp)
