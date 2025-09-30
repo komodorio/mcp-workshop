@@ -1,5 +1,4 @@
-# MCP Kubernetes Server Workshop
-## From Blueprint to Production: Building Intelligent Kubernetes Management
+# A Live Workshop for Creating an MCP Server for K8s
 
 > **🎯 This workshop teaches you to build advanced [Model Context Protocol (MCP)](https://github.com/modelcontextprotocol/python-sdk) servers for production-ready AI-tool integrations. You'll learn sophisticated patterns including interactive elicitation, multi-transport support, structured resources, and expert-level prompt engineering through hands-on Kubernetes management.**
 
