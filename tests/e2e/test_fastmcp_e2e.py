@@ -22,6 +22,7 @@ async def test_server_tool_registration():
     tool_names = {tool.name for tool in tools}
     expected_tools = {
         "kubectl",
+        "base64",
     }
     assert expected_tools.issubset(tool_names)
 

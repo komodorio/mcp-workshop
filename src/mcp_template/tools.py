@@ -4,7 +4,8 @@ Tools implementation for MCP server.
 This is where you define your tools. Users mainly need to modify this file.
 """
 
-from typing import Any
+import base64 as b64
+from typing import Any, Literal
 
 from mcp.server.elicitation import AcceptedElicitation, CancelledElicitation, DeclinedElicitation
 from mcp.server.fastmcp import Context, FastMCP
@@ -155,3 +156,88 @@ def register_tools(mcp: FastMCP) -> None:
                 ctx=ctx,
             )
             raise
+
+    @mcp.tool()
+    @tracer(name="tool.base64")
+    async def base64(
+        text: str,
+        action: Literal["encode", "decode"],
+        encoding: str = "utf-8",
+        ctx: Context[ServerSession, Any] = None,
+    ) -> str:
+        """Encode or decode base64 text.
+
+        Args:
+            text: The text to encode or base64 string to decode
+            action: Action to perform - "encode" or "decode"
+            encoding: Text encoding to use (default: utf-8)
+
+        Returns:
+            Encoded or decoded string based on action
+
+        Examples:
+            base64("Hello World", "encode") -> "SGVsbG8gV29ybGQ="
+            base64("SGVsbG8gV29ybGQ=", "decode") -> "Hello World"
+            base64("Hello 世界", "encode", "utf-8") -> "SGVsbG8g5LiW55WM"
+        """
+        if action not in ["encode", "decode"]:
+            error_msg = f"Invalid action '{action}'. Must be 'encode' or 'decode'"
+            await logger.error(error_msg, component="base64", ctx=ctx)
+            raise ValueError(error_msg)
+
+        try:
+            if action == "encode":
+                await logger.info(
+                    f"Encoding text to base64 (length: {len(text)})",
+                    component="base64",
+                    ctx=ctx,
+                )
+                
+                encoded_bytes = text.encode(encoding)
+                result = b64.b64encode(encoded_bytes).decode('ascii')
+                
+                await logger.debug(
+                    "Base64 encoding completed successfully",
+                    component="base64",
+                    ctx=ctx,
+                )
+                
+            else:  # decode
+                await logger.info(
+                    f"Decoding base64 text (length: {len(text)})",
+                    component="base64",
+                    ctx=ctx,
+                )
+                
+                # Remove any whitespace that might interfere with decoding
+                cleaned_text = text.strip()
+                
+                decoded_bytes = b64.b64decode(cleaned_text)
+                result = decoded_bytes.decode(encoding)
+                
+                await logger.debug(
+                    "Base64 decoding completed successfully",
+                    component="base64",
+                    ctx=ctx,
+                )
+            
+            return result
+            
+        except UnicodeEncodeError as e:
+            error_msg = f"Failed to encode text with {encoding} encoding: {str(e)}"
+            await logger.error(error_msg, component="base64", ctx=ctx)
+            raise ValueError(error_msg)
+        except Exception as e:
+            # Handle both base64 decoding errors and unicode decoding errors
+            if action == "decode":
+                if "Invalid base64-encoded string" in str(e) or "binascii.Error" in str(type(e)):
+                    error_msg = f"Invalid base64 string: {str(e)}"
+                elif "UnicodeDecodeError" in str(type(e)):
+                    error_msg = f"Failed to decode bytes with {encoding} encoding: {str(e)}"
+                else:
+                    error_msg = f"Base64 decoding failed: {str(e)}"
+            else:
+                error_msg = f"Base64 encoding failed: {str(e)}"
+                
+            await logger.error(error_msg, component="base64", ctx=ctx)
+            raise ValueError(error_msg)
