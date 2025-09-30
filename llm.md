@@ -261,8 +261,8 @@ The MCP server includes powerful prompt templates that help users leverage the K
 Advanced diagnostic prompt for comprehensive Kubernetes cluster troubleshooting.
 
 **Parameters:**
-- `context` (optional): Kubernetes context to diagnose
-- `namespace` (optional): Specific namespace to focus on
+- `context` (optional): Kubernetes context to diagnose. If not specified, uses the current context from kubectl config
+- `namespace` (optional): Specific namespace to focus on. If not specified, checks all namespaces
 - `focus_area` (default: "general"): Area to focus diagnostics on
   - `general`: Overall cluster health including nodes, pods, and system components
   - `pods`: Pod status, restarts, resource usage, and container issues  
@@ -281,7 +281,7 @@ Advanced diagnostic prompt for comprehensive Kubernetes cluster troubleshooting.
 Comprehensive cluster health overview with monitoring dashboard capabilities.
 
 **Parameters:**
-- `context` (optional): Kubernetes context to analyze
+- `context` (optional): Kubernetes context to analyze. If not specified, uses the current context from kubectl config
 - `include_metrics` (default: true): Include detailed resource metrics and utilization
 - `generate_dashboard` (default: false): Generate visual dashboard representation
 
@@ -300,7 +300,7 @@ Targeted troubleshooting for specific Kubernetes workloads.
 - `workload_type`: Type of workload (deployment, pod, service, statefulset, etc.)
 - `workload_name`: Name of the specific workload to troubleshoot
 - `namespace` (default: "default"): Namespace where the workload is located
-- `context` (optional): Kubernetes context to use
+- `context` (optional): Kubernetes context to use. If not specified, uses the current context from kubectl config
 - `include_logs` (default: true): Include log analysis in troubleshooting
 
 **Features:**
@@ -319,7 +319,7 @@ Create comprehensive Kubernetes architecture diagrams with multiple scope option
   - `namespace`: Detailed namespace architecture with workload relationships
   - `application`: Application-level microservices and data flow
   - `networking`: Network topology, ingress, and communication patterns
-- `context` (optional): Kubernetes context to diagram
+- `context` (optional): Kubernetes context to diagram. If not specified, uses the current context from kubectl config
 - `namespace` (optional): Specific namespace for namespace/application scope
 - `include_networking` (default: true): Include detailed networking components
 - `diagram_format` (default: "mermaid"): Format for diagram (mermaid, plantuml, ascii)
@@ -394,6 +394,82 @@ These prompts are designed to work seamlessly with AI agents and provide:
 - **Combine Prompts**: Use multiple prompts together for comprehensive analysis (e.g., overview + specific troubleshooting)
 - **Leverage Visuals**: Enable dashboard generation for stakeholder communication and documentation
 - **Context Specificity**: Always specify the appropriate context and namespace for accurate results
+
+---
+
+## 🛠️ Available Tools
+
+The MCP server provides the following tools for interacting with Kubernetes clusters:
+
+### kubectl
+
+Execute kubectl commands with comprehensive error handling and safety features.
+
+**Parameters:**
+- `cmd`: kubectl command as a string (without 'kubectl' prefix) - **required**
+- `context` (optional): Kubernetes context to use. If not specified, uses the current context from kubectl config
+- `namespace` (optional): Kubernetes namespace to use. If not specified, uses "default"
+- `output_format` (default: "json"): Output format (json, yaml, table, etc.)
+- `timeout` (default: 30.0): Command timeout in seconds
+
+**Safety Features:**
+- Automatic confirmation prompt for dangerous commands (delete, apply, create, patch, etc.)
+- Comprehensive error handling with detailed error messages
+- JSON parsing support for structured output
+- Context-aware execution with MCP logging integration
+
+**Usage Examples:**
+```python
+# Get all pods using current context and default namespace
+kubectl("get pods")
+
+# Get pods in specific namespace
+kubectl("get pods", namespace="kube-system", output_format="table")
+
+# Describe pod in specific context
+kubectl("describe pod my-pod", context="production")
+
+# Get logs with tail
+kubectl("logs deployment/my-app --tail=100")
+
+# Dangerous operation (will prompt for confirmation)
+kubectl("delete pod my-pod")
+```
+
+### base64
+
+Encode or decode base64 text for working with Kubernetes secrets and configurations.
+
+**Parameters:**
+- `text`: The text to encode or base64 string to decode - **required**
+- `action`: Action to perform - "encode" or "decode" - **required**
+- `encoding` (default: "utf-8"): Text encoding to use
+
+**Usage Examples:**
+```python
+# Encode text to base64
+base64("Hello World", "encode")
+# Returns: "SGVsbG8gV29ybGQ="
+
+# Decode base64 string
+base64("SGVsbG8gV29ybGQ=", "decode")
+# Returns: "Hello World"
+
+# Encode with specific encoding
+base64("Hello 世界", "encode", "utf-8")
+# Returns: "SGVsbG8g5LiW55WM"
+```
+
+### Default Behavior
+
+**Context Parameter:**
+- When `context` is not specified (or set to `None`), the tools will automatically use the current context from your kubectl config
+- This means you can start using the tools immediately without specifying a context
+- To check your current context: `kubectl config current-context`
+
+**Namespace Parameter:**
+- When `namespace` is not specified, it defaults to "default"
+- For prompts that support namespace=None, all namespaces will be checked
 
 ---
 

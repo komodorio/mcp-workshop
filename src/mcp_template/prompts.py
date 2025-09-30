@@ -151,8 +151,8 @@ Start by gathering cluster information using the available kubectl tools."""
         Args:
             workload_type: Type of workload (deployment, pod, service, statefulset, etc.)
             workload_name: Name of the specific workload to troubleshoot
-            namespace: Namespace where the workload is located
-            context: Kubernetes context to use
+            namespace: Namespace where the workload is located (default: "default")
+            context: Kubernetes context to use (optional, uses current context if not specified)
             include_logs: Whether to include log analysis in troubleshooting
         """
         context_info = f" in context '{context}'" if context else ""
@@ -220,11 +220,11 @@ Please create a detailed troubleshooting report with root cause analysis and act
         """Generate a prompt to create comprehensive Kubernetes architecture diagrams.
 
         Args:
-            scope: Scope of diagram (cluster, namespace, application, networking)
-            context: Kubernetes context to diagram
-            namespace: Specific namespace to focus on (for namespace/application scope)
+            scope: Scope of diagram (cluster, namespace, application, networking) (default: "cluster")
+            context: Kubernetes context to diagram (optional, uses current context if not specified)
+            namespace: Specific namespace to focus on (optional, for namespace/application scope)
             include_networking: Whether to include detailed networking components
-            diagram_format: Format for diagram (mermaid, plantuml, ascii)
+            diagram_format: Format for diagram (mermaid, plantuml, ascii) (default: "mermaid")
         """
         context_info = f" in context '{context}'" if context else ""
         namespace_info = f" focusing on namespace '{namespace}'" if namespace else ""
